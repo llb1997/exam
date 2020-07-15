@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/examapp/exam.css' %}">
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        window.onload = function check() {
+            $.ajax({
+                url: "/exam/check/",
+                type: "get",
+                data: {
+                    "h": $("input[name='h']").val(),
+                },
+                success: function (data) {
+                    if (data["status"] === true) {
+                        $(".exam-submit").attr('disabled', 'disabled');
+                        {# 考试已提交，禁止再次提交 #}
+                        $(".exam-submit-tip").removeAttr('hidden');
+                        {# 考试已提交提示 #}
+                    } else if (data["status"] === false) {
+                        $(".exam-submit").removeAttr('disabled');
+                        $(".exam-submit-tip").attr('hidden', 'hidden')
+                    }
+                }
+            });
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="question">
+                <form id="{{ question.id }}" method="post" action="{% url 'exam:judge' %}">
+                    {% csrf_token %}
+                    <input hidden name="h" value="{{ h_id }}"> {# 考试id #}
+                    <ul>
+                        <h5>一、判断题</h5>
+                        {% for question in pd_list %}
+                            <li>
+                                <h5>{{ forloop.counter }}.&nbsp;{{ question.context }}</h5>
+                                <input type="hidden" value="{{ question.id }}"/>
+                                <input name="{{ question.id }}" type="radio" value="true"/>&nbsp;正确
+                                <br/>
+                                <input name="{{ question.id }}" type="radio" value="false"/>&nbsp;错误
+                                <br/>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <br/>
+                    <ul>
+                        <h5>二、选择题</h5>
+                        {% for question in xz_list %}
+                            <li>
+                                <h5>{{ forloop.counter }}.&nbsp;{{ question.context }}</h5>
+                                <input type="hidden" value="{{ question.id }}"/>
+                                <input name="{{ question.id }}" type="radio" value="A"/>&nbsp;A.{{ question.choice_a }}
+                                <br/>
+                                <input name="{{ question.id }}" type="radio" value="B"/>&nbsp;B.{{ question.choice_b }}
+                                <br/>
+                                <input name="{{ question.id }}" type="radio" value="C"/>&nbsp;C.{{ question.choice_c }}
+                                <br/>
+                                <input name="{{ question.id }}" type="radio" value="D"/>&nbsp;D.{{ question.choice_d }}
+                                <br/>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <br/>
+
+                    <ul>
+                        <h5>三、填空题</h5>
+                        {% for question in tk_list %}
+                            <li>
+                                <h5>{{ forloop.counter }}.&nbsp;{{ question.context }}</h5>
+                                <input type="hidden" value="{{ question.id }}"/>
+                                <textarea name="{{ question.id }}" placeholder="在此作答" class="form-control"></textarea>
+                                <br/>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <br/>
+
+                    <ul>
+                        <h5>四、简答题</h5>
+                        {% for question in jd_list %}
+                            <li>
+                                <h5>{{ forloop.counter }}.&nbsp;{{ question.context }}</h5>
+                                <input type="hidden" value="{{ question.id }}"/>
+                                <textarea name="{{ question.id }}" placeholder="在此作答" class="form-control"></textarea>
+                                <br/>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <input type="submit" class="btn btn-primary exam-submit" value="确认提交">&nbsp;
+                    <span class="exam-submit-tip" hidden="hidden" style="color: red">你已作答</span>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
